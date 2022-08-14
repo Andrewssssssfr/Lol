@@ -1,0 +1,212 @@
+local Flux = loadstring(game:HttpGet"https://raw.githubusercontent.com/dawid-scripts/UI-Libs/main/fluxlib.txt")()
+local win = Flux:Window("NikitaSploit", "Natural Disasters", Color3.fromRGB(255, 110, 48), Enum.KeyCode.LeftControl)
+
+local transparent = false
+function x(v)
+	if v then
+		for _,i in pairs(workspace:GetDescendants()) do
+			if i:IsA("BasePart") and not i.Parent:FindFirstChildOfClass('Humanoid') and not i.Parent.Parent:FindFirstChildOfClass('Humanoid') then
+				i.LocalTransparencyModifier = 0.5
+			end
+		end
+	else
+		for _,i in pairs(workspace:GetDescendants()) do
+			if i:IsA("BasePart") and not i.Parent:FindFirstChildOfClass('Humanoid') and not i.Parent.Parent:FindFirstChildOfClass('Humanoid') then
+				i.LocalTransparencyModifier = 0
+			end
+		end
+	end
+end
+
+flinging = false
+local flingtbl = {}
+function fling()
+	local rootpart = getRoot(speaker.Character)
+	if not rootpart then return end
+	flingtbl.OldVelocity = rootpart.Velocity
+	local bv = Instance.new("BodyAngularVelocity")
+	flingtbl.bv = bv
+	bv.MaxTorque = Vector3.new(1, 1, 1) * math.huge
+	bv.P = math.huge
+	bv.AngularVelocity = Vector3.new(0, 9e5, 0)
+	bv.Parent = rootpart
+	local Char = speaker.Character:GetChildren()
+	for i, v in next, Char do
+		if v:IsA("BasePart") then
+			v.CanCollide = false
+			v.Massless = true
+			v.Velocity = Vector3.new(0, 0, 0)
+		end
+	end
+	flingtbl.Noclipping2 = game:GetService("RunService").Stepped:Connect(function()
+		for i, v in next, Char do
+			if v:IsA("BasePart") then
+				v.CanCollide = false
+			end
+		end
+	end)
+	flinging = true
+end
+
+function unfling()
+	local rootpart = getRoot(speaker.Character)
+	if not rootpart then return end
+	flingtbl.OldPos = rootpart.CFrame
+	local Char = speaker.Character:GetChildren()
+	if flingtbl.bv ~= nil then
+		flingtbl.bv:Destroy()
+		flingtbl.bv = nil
+	end
+	if flingtbl.Noclipping2 ~= nil then
+		flingtbl.Noclipping2:Disconnect()
+		flingtbl.Noclipping2 = nil
+	end
+	for i, v in next, Char do
+		if v:IsA("BasePart") then
+			v.CanCollide = true
+			v.Massless = false
+		end
+	end
+	flingtbl.isRunning = game:GetService("RunService").Stepped:Connect(function()
+		if flingtbl.OldPos ~= nil then
+			rootpart.CFrame = flingtbl.OldPos
+		end
+		if flingtbl.OldVelocity ~= nil then
+			rootpart.Velocity = flingtbl.OldVelocity
+		end
+	end)
+	wait(2)
+	rootpart.Anchored = true
+	if flingtbl.isRunning ~= nil then
+		flingtbl.isRunning:Disconnect()
+		flingtbl.isRunning = nil
+	end
+	rootpart.Anchored = false
+	if flingtbl.OldVelocity ~= nil then
+		rootpart.Velocity = flingtbl.OldVelocity
+	end
+	if flingtbl.OldPos ~= nil then
+		rootpart.CFrame = flingtbl.OldPos
+	end
+	wait()
+	flingtbl.OldVelocity = nil
+	flingtbl.OldPos = nil
+	flinging = false
+end
+
+local function gplr(String)
+	local Found = {}
+	local strl = String:lower()
+	if strl == "all" then
+		for i,v in pairs(game:FindService("Players"):GetPlayers()) do
+			table.insert(Found,v)
+		end
+	elseif strl == "others" then
+		for i,v in pairs(game:FindService("Players"):GetPlayers()) do
+			if v.Name ~= lp.Name then
+				table.insert(Found,v)
+			end
+		end 
+	elseif strl == "me" then
+		for i,v in pairs(game:FindService("Players"):GetPlayers()) do
+			if v.Name == lp.Name then
+				table.insert(Found,v)
+			end
+		end 
+	else
+		for i,v in pairs(game:FindService("Players"):GetPlayers()) do
+			if v.Name:lower():sub(1, #String) == String:lower() then
+				table.insert(Found,v)
+			end
+		end 
+	end
+	return Found 
+end
+
+local maintab = win:Tab("Main", "http://www.roblox.com/asset/?id=6023426915")
+
+maintab:Label("Main Features")
+
+maintab:Button("No fall damage", "If you fall you do not get any damage", function()
+	while true do
+		wait(9)
+		game.Players.LocalPlayer.Character.FallDamageScript:Destroy()
+	end
+end)
+
+maintab:Toggle("Auto-Farm", "NikitaSploit AutoFarm", function(t)
+	if t == true then
+		local autofarm = Instance.new("IntValue")
+		autofarm.Name = "Autofarm"
+		autofarm.Parent = game.Players.LocalPlayer.Character
+		while true do
+			wait(7)
+			if game.Players.LocalPlayer.Character:FindFirstChild("Autofarm") then
+				game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-280, 181, 340)
+			end
+		end
+	else
+		if game.Players.LocalPlayer.Character:FindFirstChild("Autofarm") then
+    		game.Players.LocalPlayer.Character.Autofarm:Destroy()
+		end
+	end
+end)
+
+maintab:Toggle("Map Vote GUI", "You can vote for next map!", function(t)
+	if t == true then
+		votemenu = game.Players.LocalPlayer.PlayerGui.MainGui.MapVotePage
+		votemenu.Visible = true
+	else
+		votemenu = game.Players.LocalPlayer.PlayerGui.MainGui.MapVotePage
+		votemenu.Visible = false
+	end
+end)
+
+maintab:Textbox("Tp To Player", "teleports you to a player", true, function(t)
+	local plr1 = game.Players.LocalPlayer.Character
+	local target = gplr(t)
+	local plr2 = game.Workspace:FindFirstChild(target)
+	plr1.HumanoidRootPart.CFrame = plr2.HumanoidRootPart.CFrame * CFrame.new(0,2,0)
+end)
+
+maintab:Label("Teleports")
+
+maintab:Button("Map", "Teleports you to a map", function()
+	game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-23, 48, 63)
+end)
+
+maintab:Button("Lobby", "Teleports you to a map", function()
+	game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-280, 181, 341)
+end)
+
+local playertab = win:Tab("Main", "http://www.roblox.com/asset/?id=6022668888")
+
+playertab:Slider("Walkspeed", "Makes your faster", 16, 150,16,function(t)
+	game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = t
+end)
+
+playertab:Slider("JumpPower", "Makes your jump higher", 50, 150,50,function(t)
+	game.Players.LocalPlayer.Character.Humanoid.JumpPower = t
+end)
+
+playertab:Toggle("Fling", "Now you can fling peoples!", function(t)
+	if t == true then
+		fling()
+	else
+		unfling()
+	end
+end)
+
+playertab:Toggle("X-Ray", "See through walls", function(t)
+	if t == true then
+		transparent = true
+		x(transparent)
+	else
+		transparent = false
+		x(transparent)
+	end
+end)
+
+playertab:Button("Heal", "Heals you", function()
+	game.Players.LocalPlayer.Character.Humanoid.Health = 100
+end)
